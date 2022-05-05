@@ -1,7 +1,7 @@
 # Engeto-SQL-project
 Výstupy k SQL projektu 
 
-Pro projekt byly z dostupných dat vytvořeny tabulky ***t_filip_mlicka_project_SQL_primary_final*** a ***x***.
+Pro projekt byly z dostupných dat vytvořeny tabulky ***t_filip_mlicka_project_SQL_primary_final*** a ***t_Filip_Mlicka_project_SQL_secondary_final***.
 
 
 ## 1. Rostou v průběhu let mzdy ve všech odvětvích, nebo v některých klesají?
