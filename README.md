@@ -102,7 +102,92 @@ Postupoval jsem obdobně jako v úkolu číslo jedna. Vytvořil sem si pomocný 
 
 ## 4. Existuje rok, ve kterém byl meziroční nárůst cen potravin výrazně vyšší než růst mezd (větší než 10 %)?
 
+**ODPOVĚĎ:** Dle výsledku je zřejmé, že rozdíl v nárustech žádný rok nepřekročil 10 %. Nejblíže této hodnotě jse ceny a mzdy nacházely v roce 2009, kdy mzdy rostly o 8,2 % rychleji než ceny statků.
 
-**5. Má výška HDP vliv na změny ve mzdách a cenách potravin? Neboli, pokud HDP vzroste výrazněji v jednom roce, projeví se to na cenách potravin či mzdách ve stejném nebo násdujícím roce výraznějším růstem?**
+
+Pro vypočet tohoto úkolu jsem využil vytvořený select z předešlé úlohy a vytvořil obdobný pro mzdy. Pomocí funkce LEFT JOIN jsem je následně spojil a vypočítal rozdíl mezi hodnotami. Výsledná tabulka obashuje průmerný rust statků a mezd mezi jednotlivými roky.
+
+      SELECT t1.year, t1.avg_rust_cen_statku, t2.avg_rust_mezd, ABS(t1.avg_rust_cen_statku-t2.avg_rust_mezd) as rozdil
+            FROM (
+                  SELECT year, AVG(rust_cen) as avg_rust_cen_statku
+                        FROM (
+                              SELECT t.`year`, goods,
+                                    CASE
+                                    WHEN year = 2006 then null
+                                    ELSE ROUND((goods_unit_price/lag_goods_unit_price-1)*100, 2)
+                                  END as rust_cen
+                                    FROM (
+                                          SELECT *, lag(goods_unit_price) OVER (ORDER BY goods, year) AS lag_goods_unit_price
+                                                from (select `year`, goods, goods_unit_price, goods_unit_size, goods_unit 
+                                                  from t_filip_mlicka_project_SQL_primary_final t
+                                                  group by `year`, goods 
+                                                  order by goods, `year`) t) t) t1
+                        GROUP BY year) t1
+            LEFT JOIN (SELECT * 
+                              FROM (
+                                    SELECT year, AVG(rust_mezd) as avg_rust_mezd 
+                                        FROM (
+                                              SELECT t.`year` , t.payroll_branch, t.payroll_recalculated,
+                                              CASE
+                                                WHEN year = 2006 then null
+                                                ELSE ROUND((payroll_recalculated/lag_payroll-1)*100, 2)
+                                              END as rust_mezd
+                                              FROM (select *, lag(payroll_recalculated) OVER (ORDER BY payroll_branch, year) as lag_payroll
+                                                FROM (select `year`, payroll_branch, payroll_recalculated, payroll_value_type
+                                                  FROM t_filip_mlicka_project_SQL_primary_final t
+                                                  GROUP BY `year`, payroll_branch 
+                                                  ORDER BY payroll_branch, `year`) t) t) t
+                                          GROUP BY year) t) t2
+            ON t1.year = t2.year
+
+![Tabulka 1](/image/tabulka_4_1.jpg)
 
 
+## 5. Má výška HDP vliv na změny ve mzdách a cenách potravin? Neboli, pokud HDP vzroste výrazněji v jednom roce, projeví se to na cenách potravin či mzdách ve stejném nebo násdujícím roce výraznějším růstem?
+
+**ODPOVĚĎ:** Data ukazují, že existuje určitá korelace těchto hodnot, ale vyskytují se zde velké výchylky a nelze tedy usoudit, že výrázný růst HDP se nutně promítne na růstu cen nebo mezd v dalším roce.
+
+U tohoto kroku jsem využil data z předešlého úkolu a podobným způsobem připravil data GDP pro českou republiku.
+
+        SELECT t1.year, ROUND(t1.avg_rust_cen_statku,2) as avg_rust_cen_statku, ROUND(t2.avg_rust_mezd,2) as avg_rust_mezd, t3.rust_hdp 
+              FROM (
+                    SELECT year, AVG(rust_cen) as avg_rust_cen_statku
+                          FROM (
+                                SELECT t.`year`, goods,
+                                      CASE
+                                      WHEN year = 2006 then null
+                                      ELSE ROUND((goods_unit_price/lag_goods_unit_price-1)*100, 2)
+                                    END as rust_cen
+                                      FROM (
+                                            SELECT *, lag(goods_unit_price) OVER (ORDER BY goods, year) AS lag_goods_unit_price
+                                                  from (select `year`, goods, goods_unit_price, goods_unit_size, goods_unit 
+                                                    from t_filip_mlicka_project_SQL_primary_final t
+                                                    group by `year`, goods 
+                                                    order by goods, `year`) t) t) t1
+                          GROUP BY year) t1
+              LEFT JOIN (SELECT * 
+                                FROM (
+                                      SELECT year, AVG(rust_mezd) as avg_rust_mezd 
+                                          FROM (
+                                                SELECT t.`year` , t.payroll_branch, t.payroll_recalculated,
+                                                CASE
+                                                  WHEN year = 2006 then null
+                                                  ELSE ROUND((payroll_recalculated/lag_payroll-1)*100, 2)
+                                                END as rust_mezd
+                                                FROM (select *, lag(payroll_recalculated) OVER (ORDER BY payroll_branch, year) as lag_payroll
+                                                  FROM (select `year`, payroll_branch, payroll_recalculated, payroll_value_type
+                                                    FROM t_filip_mlicka_project_SQL_primary_final t
+                                                    GROUP BY `year`, payroll_branch 
+                                                    ORDER BY payroll_branch, `year`) t) t) t
+                                            GROUP BY year) t) t2
+              ON t1.year = t2.year
+              LEFT JOIN (SELECT year, ROUND((gdp/lag_gdp-1)*100,2) as rust_hdp
+                                          FROM (
+                                                SELECT `year`, country, gdp, lag(gdp) OVER (ORDER BY year) AS lag_gdp
+                                                      FROM economies e 
+                                                      WHERE country = "Czech Republic" 
+                                                            and year < 2019 
+                                                            and year > 2004)t)t3
+                  ON t1.year = t3.year
+                  
+![Tabulka 1](/image/tabulka_5_1.jpg)
