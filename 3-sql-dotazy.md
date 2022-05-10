@@ -10,6 +10,6 @@
                             FROM (SELECT `year`, goods, goods_unit_price, goods_unit_size, goods_unit 
                                     FROM t_filip_mlicka_project_SQL_primary_final
                                     GROUP BY `year`, goods 
-                                    ORDER BY goods, `year`) goods_price_by_year) goods_price_by_year_with_lagged_price) t
+                                    ORDER BY goods, `year`) goods_price_by_year) goods_price_by_year_with_lagged_price) goods_avg_price_growth
             GROUP BY goods
             ORDER BY avg_price_growth
