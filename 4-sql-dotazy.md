@@ -21,9 +21,9 @@
                                             ELSE ROUND((payroll_recalculated/lag_payroll-1)*100, 2)
                                           END as payroll_growth
                                           FROM (SELECT *, lag(payroll_recalculated) OVER (ORDER BY payroll_branch, `year`) AS lag_payroll
-                                                FROM (SELECT `year`, payroll_branch, payroll_recalculated, payroll_value_type
-                                                      FROM t_filip_mlicka_project_SQL_primary_final
-                                                      GROUP BY `year`, payroll_branch 
-                                                      ORDER BY payroll_branch, `year`) payroll_by_year) payroll_by_year_with_lagged_payroll) avg_payroll_growth
+                                                  FROM (SELECT `year`, payroll_branch, payroll_recalculated, payroll_value_type
+                                                          FROM t_filip_mlicka_project_SQL_primary_final
+                                                          GROUP BY `year`, payroll_branch 
+                                                          ORDER BY payroll_branch, `year`) payroll_by_year) payroll_by_year_with_lagged_payroll) avg_payroll_growth
                         GROUP BY `year`) avg_payroll_growth_by_year) avg_payroll_growth_by_year
           ON avg_price_growth_by_year.year = avg_payroll_growth_by_year.year
