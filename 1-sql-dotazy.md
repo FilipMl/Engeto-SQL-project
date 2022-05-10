@@ -8,7 +8,7 @@
                 
 # Úkol 1 - Dotaz 2
 
-    SELECT payroll_growth.`year` , payroll_growth.payroll_branch, payroll_growth.payroll_recalculated,
+    SELECT `year` , payroll_branch, payroll_recalculated,
         CASE
           WHEN year = 2006 then null
           ELSE ROUND((payroll_recalculated/lag_payroll-1)*100, 2)
